@@ -1,0 +1,12 @@
+# Pair with option B: ask the external poller for a fresh read on demand.
+#
+# homeassistant.update_entity cannot refresh a pushed state, so an automation
+# that needs a current number — a geofence arriving at the shop, say — has to
+# reach the poller instead. Keep the endpoint synchronous: it should have
+# pushed the new states by the time it answers.
+
+rest_command:
+  refresh_voucher_balances:
+    url: "http://poller.internal:8080/api/vouchers/refresh"
+    method: POST
+    timeout: 30

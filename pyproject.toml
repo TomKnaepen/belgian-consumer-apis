@@ -1,0 +1,52 @@
+[project]
+name = "belgian-consumer-apis"
+version = "0.1.0"
+description = "Unofficial Python clients for Colruyt Xtra, Monizze and Pluxee"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+keywords = ["colruyt", "xtra", "monizze", "pluxee", "belgium", "meal-vouchers", "shopping-list"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Home Automation",
+]
+dependencies = ["httpx>=0.27,<1.0"]
+
+[project.urls]
+Homepage = "https://github.com/TomKnaepen/belgian-consumer-apis"
+Issues = "https://github.com/TomKnaepen/belgian-consumer-apis/issues"
+
+[project.scripts]
+beapi = "beapi.cli.main:run"
+xtra = "beapi.cli.main:run_xtra"
+monizze = "beapi.cli.main:run_monizze"
+pluxee = "beapi.cli.main:run_pluxee"
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.23", "respx>=0.21", "ruff>=0.6"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/beapi"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["beapi"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E501"]

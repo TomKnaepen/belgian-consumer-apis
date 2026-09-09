@@ -1,0 +1,91 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "xtra_search_products",
+      "description": "Search the Colruyt catalogue for real products by name. Use this before adding groceries so the list gets the exact article — the Xtra app then shows a photo of what to look for in-store. Returns product_id, brand, content, price and an image per match. When several matches are plausible, ask the user which one they mean instead of guessing.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "term": {
+            "type": "string",
+            "description": "What to search for, translated to Dutch — the Colruyt catalogue only matches Dutch product names ('peanut butter' -> 'pindakaas')"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Max matches to return (default 8, max 25)"
+          }
+        },
+        "required": ["term"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "xtra_list_items",
+      "description": "Read the Colruyt Xtra shopping list — the real grocery list shared with the household and visible in the Xtra app in-store. Returns each item's id (needed to remove it), description and whether it is already ticked off.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "include_completed": {
+            "type": "boolean",
+            "description": "Also return items already ticked off (default false)"
+          }
+        }
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "xtra_add_items",
+      "description": "Add one or more groceries to the Colruyt Xtra shopping list. Pass plain descriptions the way a person would write them on a list ('milk', 'BONI bananen'); a specific Colruyt product is only needed when the user names an exact article. If a product is already on the list but ticked off, this reactivates that existing item (returned under 'reactivated') instead of adding a duplicate.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "description": "Groceries to add",
+            "items": {
+              "type": "object",
+              "properties": {
+                "description": {
+                  "type": "string",
+                  "description": "What to buy; keep Colruyt's own product names as they are when they come from a search"
+                },
+                "product_id": {
+                  "type": "string",
+                  "description": "Colruyt technical article number, when a specific product is meant"
+                },
+                "quantity": {
+                  "type": "integer",
+                  "description": "How many (default 1); only used with product_id"
+                }
+              },
+              "required": ["description"]
+            }
+          }
+        },
+        "required": ["items"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "xtra_remove_item",
+      "description": "Remove an item from the Colruyt Xtra shopping list by its id. Call xtra_list_items first to get the id.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "item_id": {
+            "type": "string",
+            "description": "The item's id from xtra_list_items"
+          }
+        },
+        "required": ["item_id"]
+      }
+    }
+  }
+]

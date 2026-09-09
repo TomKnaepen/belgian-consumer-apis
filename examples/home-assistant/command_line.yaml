@@ -1,0 +1,40 @@
+# Requires the package importable by the HA core container:
+#   pip install belgian-consumer-apis
+# and the credentials available to it (an environment file, a wrapper script).
+
+- sensor:
+    name: "Pluxee Meal Balance"
+    unique_id: pluxee_meal_balance
+    command: "pluxee get lunch --json"
+    command_timeout: 30
+    scan_interval: 86400
+    unit_of_measurement: "€"
+    device_class: monetary
+    value_template: "{{ value_json.balance }}"
+    json_attributes:
+      - expiry
+
+- sensor:
+    name: "Monizze Meal Balance"
+    unique_id: monizze_meal_balance
+    command: "monizze balance meal --json"
+    command_timeout: 30
+    scan_interval: 86400
+    unit_of_measurement: "€"
+    device_class: monetary
+    value_template: "{{ value_json.balance }}"
+    json_attributes:
+      - token_days_left
+      - token_expires_at
+
+# A non-zero exit sets the sensor unavailable, which is the right outcome: an
+# unreadable balance must never render as €0.00 — that is a number someone
+# would act on at the till.
+
+- sensor:
+    name: "Colruyt Shopping List Count"
+    unique_id: colruyt_shopping_list_count
+    command: "xtra ls --json"
+    command_timeout: 30
+    scan_interval: 900
+    value_template: "{{ value_json['items'] | length }}"
