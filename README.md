@@ -38,7 +38,8 @@ than this layer.
 ```bash
 xtra ls                          # the shopping list
 xtra search bananen --limit 5
-xtra add "bananen" --quantity 2
+xtra add "bananen" --yes         # matches a catalogue product, then adds it
+xtra add "bananen" --product-id 29013 --quantity 2
 xtra rm 4f3c…                    # id from `xtra ls`
 xtra login                       # verify the configured cookie
 
@@ -52,6 +53,11 @@ pluxee get eco --json
 
 Every command takes `--json`, which is what makes it usable as a Home Assistant
 `command_line` sensor. `beapi xtra ls` is equivalent to `xtra ls`.
+
+The list holds catalogue products only — a description on its own is rejected
+by the endpoint. `xtra add` therefore searches first and shows you the match
+before adding it; `--yes` takes the best match unattended, and `--product-id`
+skips the search.
 
 ## Library
 

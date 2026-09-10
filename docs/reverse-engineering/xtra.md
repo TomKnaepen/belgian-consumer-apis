@@ -51,12 +51,25 @@ the unfiltered catalogue back looking like a successful search.
 **Timestamps are inconsistent.** `latest-shopping-list` returns `createdAt` as
 epoch seconds; every other endpoint sends ISO strings. Normalised to ISO here.
 
+**Free text cannot be added.** `add-items-to-list` requires `productData` with
+a real `productId`. An entry carrying only a description is rejected with a 422
+and an empty body — no message, no header, nothing naming the offending field.
+Probed on 2026-09-10 against a live account: a catalogue product was accepted
+both with and without the list query params, while every free-text shape was
+rejected — `productData` null, `productData` {}, no `completedAt`, no
+`updatedAt`, `listId` in the body, `listId` as a query param, and a bare
+`{"description": ...}`. The web client only ever adds products it has just
+looked up, so this path was never exercised there.
+
+**The description you send is discarded when productData is present.** The
+stored line carries the product's own name. An added item is therefore only
+findable by the client-minted `id`, not by the text that was sent.
+
 **Adding an item that is already ticked off does nothing visible.** The endpoint
 is idempotent per product and ignores `completedAt`: it bumps the quantity and
 leaves the line ticked. No endpoint flips that flag. The only way to reactivate
 is to delete the line and let the add recreate it, which is what `add_items`
-does — but only for entries carrying a `product_id`, because a free-text line
-cannot be matched to a product reliably.
+does.
 
 **Ids are minted client-side.** The web client generates a uuid4 and the server
 stores and echoes it rather than assigning its own.

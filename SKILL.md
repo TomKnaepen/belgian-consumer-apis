@@ -21,7 +21,7 @@ break without notice.
 ```bash
 xtra ls [--all]                       # --all includes ticked-off items
 xtra search <term> [--limit N]        # needs no session, only the API key
-xtra add "<description>" [--product-id ID] [--quantity N]
+xtra add "<description>" [--yes] [--product-id ID] [--quantity N]
 xtra rm <item-id>                     # id comes from `xtra ls`
 xtra login                            # verify the configured cookie
 
@@ -86,9 +86,16 @@ that sends someone to the shop with nothing.
 list cookie has lapsed, so it is useless as a health check for the cookie —
 `fetch_list` is the cheapest call that actually proves the session.
 
+**The list takes catalogue products, not free text.** `add-items-to-list`
+rejects an entry without `productData` with an empty-bodied 422, so `add_items`
+refuses one before the request. The CLI searches for a bare description and
+asks before adding the match — `--yes` for unattended callers, `--product-id`
+to skip the search. The description you send is discarded when the product is
+present: the stored line carries the product's own name, so an added item is
+findable only by the client-minted id.
+
 **Re-adding a ticked-off item is not a no-op here.** `add_items` deletes the
-completed line and lets the add recreate it, but only for entries with a
-`product_id`. Free-text entries cannot be reactivated.
+completed line and lets the add recreate it.
 
 ## Errors
 

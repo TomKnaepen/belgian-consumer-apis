@@ -81,13 +81,41 @@ async def _xtra_ls(args: argparse.Namespace) -> None:
     )
 
 
+async def _resolve_product(client: Xtra, description: str, assume_yes: bool) -> str:
+    """Match a plain description to a catalogue product.
+
+    The list holds catalogue products only, so a description on its own cannot
+    be added. Everything here goes to stderr, leaving --json output clean.
+    """
+    hits = await client.search_products(description, limit=1)
+    if not hits:
+        print(f"no catalogue product matched {description!r}", file=sys.stderr)
+        raise SystemExit(1)
+
+    top = hits[0]
+    label = f"{top['product_id']}  {top['long_name'] or top['name']}  €{top['price']}"
+    if assume_yes:
+        print(f"matched {label}", file=sys.stderr)
+        return top["product_id"]
+
+    print(f"best match: {label}", file=sys.stderr)
+    if not sys.stdin.isatty():
+        print("stdin is not a terminal — pass --yes to add the best match", file=sys.stderr)
+        raise SystemExit(2)
+    if input("add this? [y/N] ").strip().lower() != "y":
+        print("aborted", file=sys.stderr)
+        raise SystemExit(1)
+    return top["product_id"]
+
+
 async def _xtra_add(args: argparse.Namespace) -> None:
     entry: dict[str, Any] = {"description": " ".join(args.description)}
-    if args.product_id:
-        entry["product_id"] = args.product_id
-    if args.quantity:
-        entry["quantity"] = args.quantity
     async with _xtra() as client:
+        entry["product_id"] = args.product_id or await _resolve_product(
+            client, entry["description"], args.yes
+        )
+        if args.quantity:
+            entry["quantity"] = args.quantity
         result = await client.add_items([entry])
     _emit(
         result,
@@ -189,47 +217,61 @@ async def _pluxee_cards(args: argparse.Namespace) -> None:
         _emit(await client.cards(), True)
 
 
+_JSON_FLAG = argparse.ArgumentParser(add_help=False)
+# SUPPRESS keeps the verb-level flag out of the namespace when it is absent, so
+# that `beapi --json xtra ls` is not overwritten by the subparser's own default.
+_JSON_FLAG.add_argument(
+    "--json", action="store_true", default=argparse.SUPPRESS, help="print raw JSON"
+)
+
+
+def _verb(sub: argparse._SubParsersAction, name: str, summary: str) -> argparse.ArgumentParser:
+    return sub.add_parser(name, help=summary, parents=[_JSON_FLAG])
+
+
 def _add_xtra(sub: argparse._SubParsersAction) -> None:
-    ls = sub.add_parser("ls", help="show the shopping list")
+    ls = _verb(sub, "ls", "show the shopping list")
     ls.add_argument("--all", action="store_true", help="include ticked-off items")
     ls.set_defaults(run=_xtra_ls)
 
-    add = sub.add_parser("add", help="add an item")
+    add = _verb(sub, "add", "add an item")
     add.add_argument("description", nargs="+")
     add.add_argument("--product-id", help="Colruyt technical article number")
     add.add_argument("--quantity", type=int)
+    add.add_argument("-y", "--yes", action="store_true",
+                     help="take the best catalogue match without asking")
     add.set_defaults(run=_xtra_add)
 
-    rm = sub.add_parser("rm", help="remove an item by id")
+    rm = _verb(sub, "rm", "remove an item by id")
     rm.add_argument("item_id")
     rm.set_defaults(run=_xtra_rm)
 
-    search = sub.add_parser("search", help="search the catalogue (needs no session)")
+    search = _verb(sub, "search", "search the catalogue (needs no session)")
     search.add_argument("term", nargs="+")
     search.add_argument("--limit", type=int, default=8)
     search.set_defaults(run=_xtra_search)
 
-    login = sub.add_parser("login", help="check the configured session cookie")
+    login = _verb(sub, "login", "check the configured session cookie")
     login.set_defaults(run=_xtra_login)
 
 
 def _add_monizze(sub: argparse._SubParsersAction) -> None:
-    balance = sub.add_parser("balance", help="read a voucher balance")
+    balance = _verb(sub, "balance", "read a voucher balance")
     balance.add_argument("voucher", nargs="?", default="meal",
                          choices=["meal", "eco", "gift", "consumption"])
     balance.set_defaults(run=_monizze_balance)
 
-    token = sub.add_parser("token", help="show when the stored token expires")
+    token = _verb(sub, "token", "show when the stored token expires")
     token.set_defaults(run=_monizze_token)
 
 
 def _add_pluxee(sub: argparse._SubParsersAction) -> None:
-    get = sub.add_parser("get", help="read a voucher balance")
+    get = _verb(sub, "get", "read a voucher balance")
     get.add_argument("voucher", nargs="?", default="lunch",
                      choices=["lunch", "eco", "gift", "sport"])
     get.set_defaults(run=_pluxee_get)
 
-    cards = sub.add_parser("cards", help="dump the raw cards response")
+    cards = _verb(sub, "cards", "dump the raw cards response")
     cards.set_defaults(run=_pluxee_cards)
 
 

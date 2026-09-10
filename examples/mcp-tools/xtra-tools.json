@@ -40,7 +40,7 @@
     "type": "function",
     "function": {
       "name": "xtra_add_items",
-      "description": "Add one or more groceries to the Colruyt Xtra shopping list. Pass plain descriptions the way a person would write them on a list ('milk', 'BONI bananen'); a specific Colruyt product is only needed when the user names an exact article. If a product is already on the list but ticked off, this reactivates that existing item (returned under 'reactivated') instead of adding a duplicate.",
+      "description": "Add one or more groceries to the Colruyt Xtra shopping list. The list holds catalogue products only, so every entry needs a product_id: call xtra_search_products first and add the match. The description is only used to report back what was added — the stored line carries the product's own name. If a product is already on the list but ticked off, this reactivates that existing item (returned under 'reactivated') instead of adding a duplicate.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -56,14 +56,14 @@
                 },
                 "product_id": {
                   "type": "string",
-                  "description": "Colruyt technical article number, when a specific product is meant"
+                  "description": "Colruyt technical article number, from xtra_search_products"
                 },
                 "quantity": {
                   "type": "integer",
-                  "description": "How many (default 1); only used with product_id"
+                  "description": "How many (default 1)"
                 }
               },
-              "required": ["description"]
+              "required": ["description", "product_id"]
             }
           }
         },

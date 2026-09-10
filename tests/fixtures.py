@@ -1,5 +1,17 @@
 """Response bodies trimmed from real traffic, with all account data replaced."""
 
+import base64
+import json
+from datetime import UTC, datetime, timedelta
+
+
+def jwt(days_out: int) -> str:
+    """A Monizze-shaped bearer token whose exp claim is *days_out* away."""
+    exp = int((datetime.now(UTC) + timedelta(days=days_out)).timestamp())
+    claims = base64.urlsafe_b64encode(json.dumps({"exp": exp}).encode()).decode().rstrip("=")
+    return f"Bearer header.{claims}.signature"
+
+
 COMPLETED_BANANA = {
     "id": "e0efedb7-759c-48ab-8af7-6dc2ed398c9d",
     "description": "BONI bananen",

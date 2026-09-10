@@ -116,3 +116,9 @@ async def test_search_uses_searchTerm_and_sends_no_cookie(xtra):
     assert request.headers["x-cg-apikey"] == "key-123"
     assert products[0]["long_name"] == "BONI bananen ±1kg"
     assert products[0]["name"] == "bananen"
+
+
+async def test_add_refuses_a_free_text_entry_before_calling(xtra):
+    """The BFF answers an entry without productData with an empty-bodied 422."""
+    with pytest.raises(ValueError, match="product_id"):
+        await xtra.add_items([{"description": "melk"}])

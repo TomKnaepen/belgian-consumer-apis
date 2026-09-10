@@ -1,20 +1,12 @@
-import base64
-import json
 from datetime import UTC, datetime, timedelta
 
 import httpx
 import pytest
 import respx
-from fixtures import MONIZZE_BALANCES
+from fixtures import MONIZZE_BALANCES, jwt
 
 from beapi import AuthExpired, Monizze
 from beapi.monizze import BALANCES_URL, token_expiry
-
-
-def _jwt(days_out: int) -> str:
-    exp = int((datetime.now(UTC) + timedelta(days=days_out)).timestamp())
-    claims = base64.urlsafe_b64encode(json.dumps({"exp": exp}).encode()).decode().rstrip("=")
-    return f"Bearer header.{claims}.signature"
 
 
 @respx.mock
@@ -50,7 +42,7 @@ async def test_rejected_token_raises_auth_expired(monizze):
 
 
 def test_token_expiry_decodes_the_exp_claim():
-    date, days_left = token_expiry(_jwt(30))
+    date, days_left = token_expiry(jwt(30))
     assert days_left in (29, 30)
     assert date == (datetime.now(UTC) + timedelta(days=30)).strftime("%Y-%m-%d")
 

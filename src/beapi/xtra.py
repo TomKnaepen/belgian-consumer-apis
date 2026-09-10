@@ -133,20 +133,18 @@ def _build_entry(entry: dict) -> dict:
     uuid4 and the server stores and echoes it rather than assigning its own.
     """
     now = _now_iso()
-    item: dict[str, Any] = {
+    return {
         "id": str(uuid.uuid4()),
         "createdAt": now,
         "updatedAt": now,
         "completedAt": None,
         "description": entry["description"],
-    }
-    if entry.get("product_id"):
-        item["productData"] = {
+        "productData": {
             "productId": str(entry["product_id"]),
             "quantity": entry.get("quantity") or 1,
             "unitCode": "P",
-        }
-    return item
+        },
+    }
 
 
 def _match_entry(items: list[dict], entry: dict) -> dict | None:
@@ -155,14 +153,8 @@ def _match_entry(items: list[dict], entry: dict) -> dict | None:
     `add-items-to-list` answers with the whole list, not just what changed, so
     the requested entry has to be picked back out of it.
     """
-    product_id = entry.get("product_id")
-    if product_id is not None:
-        for item in items:
-            if str((item.get("productData") or {}).get("productId")) == str(product_id):
-                return item
-        return None
     for item in items:
-        if item.get("description") == entry.get("description"):
+        if str((item.get("productData") or {}).get("productId")) == str(entry["product_id"]):
             return item
     return None
 
@@ -276,8 +268,12 @@ class Xtra:
     async def add_items(self, entries: list[dict]) -> dict:
         """Add entries to the list, reactivating anything that was ticked off.
 
-        Each entry needs a `description`; `product_id` (a technicalArticleNumber)
-        and `quantity` are optional.
+        Each entry needs a `description` and a `product_id` (a
+        technicalArticleNumber); `quantity` is optional. The endpoint rejects an
+        entry without a product with an empty-bodied 422, so that is refused
+        here before the request rather than surfaced as an unexplained failure.
+        The description is only used to match the response — the stored line
+        carries the product's own name.
 
         `add-items-to-list` is idempotent per product and ignores completion:
         adding a product already on the list — even one ticked off — leaves the
@@ -285,11 +281,18 @@ class Xtra:
         Left alone that makes "add the bananas" a silent no-op when a completed
         banana line is still there. No API flips an item's ticked-off state, so
         a still-completed product is reactivated by removing its line first and
-        letting the add recreate it. Only entries carrying a product_id can be
-        reactivated — a free-text line cannot be matched to a product reliably.
+        letting the add recreate it.
 
         Returns ``{"added": [...], "reactivated": [...]}``.
         """
+        free_text = [e.get("description") for e in entries if not e.get("product_id")]
+        if free_text:
+            raise ValueError(
+                "the shopping list only takes catalogue products; these entries have no "
+                f"product_id: {', '.join(repr(d) for d in free_text)}. "
+                "Find one with search_products()."
+            )
+
         completed_by_product: dict[str, dict] = {}
         for item in await self._fetch_raw_items():
             if item.get("completedAt") is None:
