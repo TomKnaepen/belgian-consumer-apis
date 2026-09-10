@@ -22,8 +22,11 @@ each API was found, including the paths that turned out to be dead ends.
 
 ## Install
 
+Not on PyPI — install from git.
+
 ```bash
-uv add belgian-consumer-apis     # or: pip install belgian-consumer-apis
+uv add git+https://github.com/TomKnaepen/belgian-consumer-apis
+# or: pip install git+https://github.com/TomKnaepen/belgian-consumer-apis
 ```
 
 ## CLI

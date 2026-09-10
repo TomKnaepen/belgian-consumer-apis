@@ -1,5 +1,5 @@
 # Requires the package importable by the HA core container:
-#   pip install belgian-consumer-apis
+#   pip install git+https://github.com/TomKnaepen/belgian-consumer-apis
 # and the credentials available to it (an environment file, a wrapper script).
 
 - sensor:
