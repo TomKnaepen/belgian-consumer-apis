@@ -31,6 +31,10 @@ uv add git+https://github.com/TomKnaepen/belgian-consumer-apis
 
 ## CLI
 
+The commands below are untested. They were lifted from the LLM tooling these
+clients started as, and the test suite covers the library underneath rather
+than this layer.
+
 ```bash
 xtra ls                          # the shopping list
 xtra search bananen --limit 5
@@ -99,6 +103,22 @@ Lifetimes differ and the failure modes follow from that:
   `TokenStore`) before it does anything else. Only one process may hold a given
   token: two pollers sharing one seed will invalidate each other and force a
   fresh browser login.
+
+## Example use cases
+
+- **Voucher balance when you arrive at the shop.** A geofence trigger in Home
+  Assistant, a notification to your phone with what is left on your card and
+  your partner's — a second entry in the token file is a second account, so
+  both cards read the same way. Wiring in
+  [`examples/home-assistant/`](examples/home-assistant/).
+
+- **A shopping list your agent maintains.** Give an LLM agent — Openclaw,
+  Hermes, or your own harness — these CLI utilities as tools and add items by
+  asking. Schemas in [`examples/mcp-tools/`](examples/mcp-tools/).
+
+  Put a Discord or Telegram integration on the agent and the loop closes from
+  your phone: ask it for the toilet paper options, let it search the catalogue,
+  and pick the one it adds.
 
 ## Integrating
 
