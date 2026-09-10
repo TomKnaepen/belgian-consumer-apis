@@ -5,8 +5,8 @@
 `my.monizze.be` is a single-page app talking to a JSON API at
 `happy.monizze.be`. Authentication is a bearer JWT held in the browser. There
 is no refresh flow reachable from outside the app, so the token is captured by
-hand — but its `exp` claim sits about two months out, which makes a manual
-capture perfectly workable.
+hand — but its `exp` claim sits about one month out, which makes a manual
+capture acceptable.
 
 | | |
 |---|---|

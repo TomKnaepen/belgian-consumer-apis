@@ -50,8 +50,8 @@ async with Monizze(token=...) as monizze:
     await monizze.balance("meal")                # float
     monizze.expiry()                             # ("2026-11-02", 54)
 
-async with Pluxee.from_store(store, "tom", client_id=..., subscription_key=...) as pluxee:
-    await pluxee.balance("lunch")                # {"balance": 170.0, "expiry": "2027-08-30"}
+async with Pluxee.from_store(store, "alice", client_id=..., subscription_key=...) as pluxee:
+    await pluxee.balance("lunch")                # {"balance": 123.45, "expiry": "2028-01-31"}
 ```
 
 All clients are async context managers. Pass an existing `httpx.AsyncClient` as
